@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xiaoma 软件站 - 开源软件一键下载</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 顶部导航 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        .nav a:hover {
+            opacity: 0.8;
+        }
+        
+        /* 分类标签 */
+        .category-bar {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .category-tag {
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .category-tag:hover, .category-tag.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        /* 主要内容区 */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        /* 软件卡片网格 */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .app-cover {
+            height: 160px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+        }
+        
+        .app-body {
+            padding: 20px;
+        }
+        
+        .app-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .app-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .app-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .app-tag {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            color: #666;
+        }
+        
+        .app-meta {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        /* 详情弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 50px 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .detail-cover {
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .detail-desc {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        
+        .detail-section {
+            margin-bottom: 25px;
+        }
+        
+        .detail-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .version-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .version-item {
+            padding: 12px 15px;
+            background: #f8f8f8;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .version-name {
+            font-weight: 500;
+        }
+        
+        .version-size {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        /* 页脚 */
+        .footer {
+            background: #333;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+            
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">🧡 xiaoma 软件站</a>
+                <nav class="nav">
+                    <a href="#">首页</a>
+                    <a href="#">软件工具</a>
+                    <a href="#">Ai效率</a>
+                    <a href="#">电脑软件</a>
+                    <a href="#">关于</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 分类标签 -->
+    <div class="category-bar">
+        <div class="container">
+            <div class="category-list">
+                <button class="category-tag active">全部</button>
+                <button class="category-tag">压缩工具</button>
+                <button class="category-tag">编辑器</button>
+                <button class="category-tag">录屏直播</button>
+                <button class="category-tag">图像处理</button>
+                <button class="category-tag">播放器</button>
+                <button class="category-tag">办公软件</button>
+                <button class="category-tag">开发工具</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主要内容 -->
+    <div class="main-content">
+        <div class="container">
+            <h1 class="page-title">热门软件</h1>
+            
+            <div class="app-grid">
+                <!-- PeaZip -->
+                <div class="app-card" onclick="showDetail('peazip')">
+                    <div class="app-cover">📦</div>
+                    <div class="app-body">
+                        <div class="app-name">PeaZip</div>
+                        <div class="app-desc">免费开源的压缩/解压工具，7-Zip 替代品</div>
+                        <div class="app-tags">
+                            <span class="app-tag">压缩工具</span>
+                            <span class="app-tag">Windows</span>
+                            <span class="app-tag">macOS</span>
+                            <span class="app-tag">Linux</span>
+                        </div>
+                        <div class="app-meta">版本 10.9.0 · 10.8 MB</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+                
+                <!-- VSCodium -->
+                <div class="app-card" onclick="showDetail('vscodium')">
+                    <div class="app-cover">💻</div>
+                    <div class="app-body">
+                        <div class="app-name">VSCodium</div>
+                        <div class="app-desc">VS Code 开源版，无微软遥测，安全可靠</div>
+                        <div class="app-tags">
+                            <span class="app-tag">编辑器</span>
+                            <span class="app-tag">开发工具</span>
+                            <span class="app-tag">Windows</span>
+                            <span class="app-tag">macOS</span>
+                        </div>
+                        <div class="app-meta">版本 1.112 · 178 MB</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+                
+                <!-- OBS Studio -->
+                <div class="app-card" onclick="showDetail('obs')">
+                    <div class="app-cover">🎥</div>
+                    <div class="app-body">
+                        <div class="app-name">OBS Studio</div>
+                        <div class="app-desc">免费开源的录屏和直播软件</div>
+                        <div class="app-tags">
+                            <span class="app-tag">录屏直播</span>
+                            <span class="app-tag">Windows</span>
+                            <span class="app-tag">macOS</span>
+                            <span class="app-tag">Linux</span>
+                        </div>
+                        <div class="app-meta">版本 30.0 · 免费</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+                
+                <!-- VLC -->
+                <div class="app-card" onclick="showDetail('vlc')">
+                    <div class="app-cover">🎬</div>
+                    <div class="app-body">
+                        <div class="app-name">VLC Media Player</div>
+                        <div class="app-desc">强大的开源视频播放器，支持几乎所有格式</div>
+                        <div class="app-tags">
+                            <span class="app-tag">播放器</span>
+                            <span class="app-tag">Windows</span>
+                            <span class="app-tag">macOS</span>
+                            <span class="app-tag">Linux</span>
+                        </div>
+                        <div class="app-meta">版本 3.0 · 免费</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+                
+                <!-- GIMP -->
+                <div class="app-card" onclick="showDetail('gimp')">
+                    <div class="app-cover">🖼️</div>
+                    <div class="app-body">
+                        <div class="app-name">GIMP</div>
+                        <div class="app-desc">免费开源的图像编辑器，Photoshop 替代品</div>
+                        <div class="app-tags">
+                            <span class="app-tag">图像处理</span>
+                            <span class="app-tag">Windows</span>
+                            <span class="app-tag">macOS</span>
+                            <span class="app-tag">Linux</span>
+                        </div>
+                        <div class="app-meta">版本 2.10 · 免费</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+                
+                <!-- Inkscape -->
+                <div class="app-card" onclick="showDetail('inkscape')">
+                    <div class="app-cover">✏️</div>
+                    <div class="app-body">
+                        <div class="app-name">Inkscape</div>
+                        <div class="app-desc">免费开源的矢量图形编辑器</div>
+                        <div class="app-tags">
+                            <span class="app-tag">图像处理</span>
+                            <span class="app-tag">矢量图形</span>
+                            <span class="app-tag">Windows</span>
+                        </div>
+                        <div class="app-meta">版本 1.3 · 免费</div>
+                        <button class="download-btn">立即下载</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 详情弹窗 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">软件详情</h2>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 内容由 JS 动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 xiaoma 软件站 · 所有软件版权归原作者所有</p>
+            <p>开源软件，仅供学习交流使用</p>
+        </div>
+    </footer>
+    
+    <script>
+        // 软件数据
+        const appsData = {
+            peazip: {
+                name: 'PeaZip',
+                icon: '📦',
+                desc: 'PeaZip是一款免费开源的压缩/解压工具，跨平台支持Windows、macOS、Linux。它提供了图形化的操作界面，支持多种压缩格式，包括7z、zip、rar、tar等。相比7-Zip，PeaZip拥有更美观的界面和更易用的操作方式。',
+                features: [
+                    '支持70多种压缩格式',
+                    '跨平台支持',
+                    '内置文件浏览器',
+                    '支持加密压缩',
+                    '完全免费开源'
+                ],
+                versions: [
+                    { name: 'Windows x64', size: '10.8 MB', url: 'https://github.com/peazip/PeaZip/releases/download/10.9.0/peazip-10.9.0.WIN64.exe' },
+                    { name: 'Windows 便携版', size: '15.5 MB', url: 'https://github.com/peazip/PeaZip/releases/download/10.9.0/peazip_portable-10.9.0.WIN64.zip' },
+                    { name: 'macOS x64', size: '25.5 MB', url: 'https://github.com/peazip/PeaZip/releases/download/10.9.0/peazip-10.9.0.DARWIN.x86_64.dmg' },
+                    { name: 'Linux deb', size: '13.1 MB', url: 'https://github.com/peazip/PeaZip/releases/download/10.9.0/peazip_10.9.0.LINUX.Qt6-1_amd64.deb' }
+                ]
+            },
+            vscodium: {
+                name: 'VSCodium',
+                icon: '💻',
+                desc: 'VSCodium是Visual Studio Code的开源版本，去除了微软的遥测数据追踪功能。它拥有VS Code完全相同的功能和体验，但更加注重用户隐私。非常适合开发者使用。',
+                features: [
+                    '完全开源免费',
+                    '无微软遥测数据',
+                    '与VS Code功能完全兼容',
+                    '支持多语言',
+                    '丰富的扩展生态'
+                ],
+                versions: [
+                    { name: 'Windows x64', size: '178 MB', url: 'https://github.com/VSCodium/vscodium/releases/download/1.112.01907/VSCodium-win32-x64-1.112.01907.zip' },
+                    { name: 'macOS x64', size: '167 MB', url: 'https://github.com/VSCodium/vscodium/releases/download/1.112.01907/VSCodium-darwin-x64-1.112.01907.zip' },
+                    { name: 'macOS ARM', size: '159 MB', url: 'https://github.com/VSCodium/vscodium/releases/download/1.112.01907/VSCodium-darwin-arm64-1.112.01907.zip' },
+                    { name: 'Linux x64', size: '58 MB', url: 'https://github.com/VSCodium/vscodium/releases/download/1.112.01907/vscodium-reh-linux-x64-1.112.01907.tar.gz' }
+                ]
+            },
+            obs: {
+                name: 'OBS Studio',
+                icon: '🎥',
+                desc: 'OBS Studio是一款免费开源的录屏和直播软件，功能强大，深受主播和内容创作者喜爱。支持Windows、macOS、Linux三大平台。',
+                features: [
+                    '免费开源',
+                    '高性能录制',
+                    '实时直播推流',
+                    '多场景切换',
+                    '丰富的滤镜效果'
+                ],
+                versions: [
+                    { name: 'Windows', size: '免费', url: 'https://obsproject.com/downloads/obs-studio-30.0.0-full.exe' },
+                    { name: 'macOS', size: '免费', url: 'https://obsproject.com/downloads/obs-studio-30.0.0-macOS.dmg' },
+                    { name: 'Linux', size: '免费', url: 'https://obsproject.com/downloads/obs-studio-30.0.0-linux-x86_64.tar.gz' }
+                ]
+            },
+            vlc: {
+                name: 'VLC Media Player',
+                icon: '🎬',
+                desc: 'VLC是一款功能强大的免费开源视频播放器，几乎支持所有视频格式，无需安装额外的解码器。',
+                features: [
+                    '支持几乎所有格式',
+                    '完全免费',
+                    '跨平台支持',
+                    '无需解码器',
+                    '可播放网络流'
+                ],
+                versions: [
+                    { name: 'Windows', size: '免费', url: 'https://get.videolan.org/vlc/3.0.18/win64/vlc-3.0.18-win64.exe' },
+                    { name: 'macOS Intel', size: '免费', url: 'https://get.videolan.org/vlc/3.0.18/macosx/vlc-3.0.18-intel64.dmg' },
+                    { name: 'macOS Apple Silicon', size: '免费', url: 'https://get.videolan.org/vlc/3.0.18/macosx/vlc-3.0.18-arm64.dmg' }
+                ]
+            },
+            gimp: {
+                name: 'GIMP',
+                icon: '🖼️',
+                desc: 'GIMP是一款免费开源的图像编辑器，可以作为Photoshop的免费替代品。支持照片修图、图像合成、绘图等功能。',
+                features: [
+                    '完全免费开源',
+                    'Photoshop替代品',
+                    '支持插件扩展',
+                    '跨平台支持',
+                    '强大的图像处理'
+                ],
+                versions: [
+                    { name: 'Windows', size: '免费', url: 'https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.36-setup.exe' },
+                    { name: 'macOS', size: '免费', url: 'https://download.gimp.org/gimp/v2.10/macos/gimp-2.10.36-x86_64.dmg' }
+                ]
+            },
+            inkscape: {
+                name: 'Inkscape',
+                icon: '✏️',
+                desc: 'Inkscape是一款免费开源的矢量图形编辑器，可以用来绘制插画、图标、徽标等矢量图形。',
+                features: [
+                    '矢量图形编辑',
+                    '免费开源',
+                    'AI格式支持',
+                    '丰富的绘图工具',
+                    '跨平台支持'
+                ],
+                versions: [
+                    { name: 'Windows', size: '免费', url: 'https://inkscape.org/gallery/item/44613/inkscape-1.3.2-x64.msi' },
+                    { name: 'macOS', size: '免费', url: 'https://inkscape.org/gallery/item/44617/Inkscape-1.3.2-universal.dmg' }
+                ]
+            }
+        };
+        
+        // 显示详情弹窗
+        function showDetail(appId) {
+            const app = appsData[appId];
+            if (!app) return;
+            
+            const modal = document.getElementById('detailModal');
+            const modalBody = document.getElementById('modalBody');
+            
+            let versionsHtml = app.versions.map(v => `
+                <div class="version-item">
+                    <span class="version-name">${v.name}</span>
+                    <span class="version-size">${v.size}</span>
+                    <a href="${v.url}" target="_blank" style="margin-left:10px;color:#667eea;">下载</a>
+                </div>
+            `).join('');
+            
+            let featuresHtml = app.features.map(f => `<li>${f}</li>`).join('');
+            
+            modalBody.innerHTML = `
+                <div class="detail-cover">${app.icon}</div>
+                <h2 class="detail-title">${app.name}</h2>
+                <p class="detail-desc">${app.desc}</p>
+                
+                <div class="detail-section">
+                    <h3>主要特点</h3>
+                    <ul style="margin-left:20px;margin-top:10px;">
+                        ${featuresHtml}
+                    </ul>
+                </div>
+                
+                <div class="detail-section">
+                    <h3>下载版本</h3>
+                    <div class="version-list">
+                        ${versionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('show');
+        }
+        
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // 分类标签点击事件
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
